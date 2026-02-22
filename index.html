@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MurMed — Merkezi Sağlık Sistemi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <div id="loading-screen">
+    <div class="loading-inner">
+      <div class="loading-logo">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"
+          stroke-linecap="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg>
+      </div>
+      <div class="loading-brand">Mur<span>Med</span></div>
+      <div class="loading-bar">
+        <div class="loading-fill"></div>
+      </div>
+      <div class="loading-text">Sistem Yükleniyor...</div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <div class="modal-overlay" id="review-modal" onclick="closeReviewModal(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-doctor-info">
+          <img class="modal-doctor-photo" id="modal-doc-photo" src="" alt="">
+          <div>
+            <div class="modal-doctor-name" id="modal-doc-name">Dr. Doktor</div>
+            <div class="modal-doctor-spec" id="modal-doc-spec">Uzman</div>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeReviewModal(null,true)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div id="review-form-section">
+        <div class="modal-section-label">Adınız (isteğe bağlı)</div>
+        <input class="modal-name-input" id="review-author" placeholder="İsim Soyisim">
+        <div class="modal-section-label">Puanınız</div>
+        <div class="star-selector" id="star-selector">
+          <button class="star-btn" data-val="1" onclick="selectStar(1)">⭐</button>
+          <button class="star-btn" data-val="2" onclick="selectStar(2)">⭐</button>
+          <button class="star-btn" data-val="3" onclick="selectStar(3)">⭐</button>
+          <button class="star-btn" data-val="4" onclick="selectStar(4)">⭐</button>
+          <button class="star-btn" data-val="5" onclick="selectStar(5)">⭐</button>
+        </div>
+        <div class="modal-section-label">Yorumunuz (isteğe bağlı)</div>
+        <textarea class="modal-textarea" id="review-text"
+          placeholder="Hekimle olan deneyiminizi paylaşın..."></textarea>
+        <button class="btn-submit-review" onclick="submitReview()">Yorumu Gönder</button>
+      </div>
+      <div class="reviews-list" id="modal-reviews-list"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="service-modal" onclick="closeServiceModal(event)">
+    <div class="modal-box service-modal-box">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div class="service-modal-icon" id="service-modal-icon"></div>
+          <div>
+            <div class="modal-doctor-name" id="service-modal-title">Hizmet</div>
+            <div class="modal-doctor-spec" id="service-modal-tag">Poliklinik</div>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeServiceModal(null,true)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div id="service-modal-content" style="padding:24px 0;"></div>
+      <button class="btn btn-primary"
+        onclick="loginTabSwitch('hasta');closeServiceModal(null,true);showPage('page-landing');"
+        style="width:100%;margin-top:8px;">
+        Randevu Al
+      </button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="article-modal" onclick="closeArticleModal(event)">
+    <div class="modal-box" style="max-width:680px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-doctor-name" id="article-modal-title"></div>
+          <div class="modal-doctor-spec" id="article-modal-tag"></div>
+        </div>
+        <button class="modal-close" onclick="closeArticleModal(null,true)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div id="article-modal-body"
+        style="padding:24px 0;line-height:1.8;color:var(--gray-700);font-size:14px;max-height:60vh;overflow-y:auto;">
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar" id="public-navbar">
+    <div class="navbar-brand" onclick="goLanding()">
+      <div class="brand-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"
+          stroke-linecap="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg>
+      </div>
+      <div>
+        <div class="brand-text">Mur<span>Med</span></div>
+        <div class="brand-tagline">Sağlık Sistemi</div>
+      </div>
+    </div>
+
+    <nav class="navbar-nav">
+      <div class="nav-item">
+        <button class="nav-link" onclick="showPage('page-landing')">Ana Sayfa</button>
+      </div>
+      <div class="nav-item">
+        <button class="nav-link">Hizmetler
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+        <div class="dropdown">
+          <div class="dropdown-item" onclick="showPage('page-services')">
+            <div class="dropdown-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+              </svg></div>
+            Poliklinikler
+          </div>
+          <div class="dropdown-item" onclick="loginTabSwitch('hasta');showPage('page-landing');">
+            <div class="dropdown-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg></div>
+            Online Randevu
+          </div>
+          <div class="dropdown-item" onclick="showPage('page-rehber')">
+            <div class="dropdown-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                stroke-width="2">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg></div>
+            Sağlık Rehberi
+          </div>
+          <div class="dropdown-item" onclick="showPage('page-acil')">
+            <div class="dropdown-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DC2626"
+                stroke-width="2">
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 3.18H6.6a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 17.18z" />
+              </svg></div>
+            Acil Servis
+          </div>
+        </div>
+      </div>
+      <div class="nav-item">
+        <button class="nav-link" onclick="showPage('page-kadro')">Kadromuz</button>
+      </div>
+      <div class="nav-item">
+        <button class="nav-link" onclick="showPage('page-hakkimizda')">Hakkımızda</button>
+      </div>
+      <div class="nav-item">
+        <button class="nav-link" onclick="showPage('page-iletisim')">İletişim</button>
+      </div>
+      <div class="nav-item">
+        <button class="nav-link" onclick="showPage('page-rehber')">Sağlık Rehberi</button>
+      </div>
+    </nav>
+
+    <div class="navbar-actions">
+      <span class="badge-dot"></span>
+      <span style="font-size:12px;color:var(--success);font-weight:700;">Sistem Aktif</span>
+      <button class="btn-nav-outline" onclick="loginTabSwitch('personel')">Personel Girişi</button>
+      <button class="btn-nav-primary" onclick="loginTabSwitch('hasta')">Randevu Al</button>
+    </div>
+
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+  </nav>
+
+
+  <div class="mobile-nav" id="mobile-nav">
+    <button class="mobile-nav-item" onclick="showPage('page-landing');closeMobileMenu()">Ana Sayfa</button>
+    <button class="mobile-nav-item" onclick="showPage('page-services');closeMobileMenu()">Poliklinikler</button>
+    <button class="mobile-nav-item" onclick="showPage('page-kadro');closeMobileMenu()">Kadromuz</button>
+    <button class="mobile-nav-item" onclick="showPage('page-rehber');closeMobileMenu()">Sağlık Rehberi</button>
+    <button class="mobile-nav-item" onclick="showPage('page-acil');closeMobileMenu()">Acil Servis</button>
+    <button class="mobile-nav-item" onclick="showPage('page-hakkimizda');closeMobileMenu()">Hakkımızda</button>
+    <button class="mobile-nav-item" onclick="showPage('page-iletisim');closeMobileMenu()">İletişim</button>
+    <button class="mobile-nav-item primary" onclick="loginTabSwitch('hasta');closeMobileMenu()">Randevu Al</button>
+  </div>
+
+  <nav class="navbar" id="auth-navbar" style="display:none;">
+    <div class="navbar-brand" onclick="goLanding()">
+      <div class="brand-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"
+          stroke-linecap="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" />
+          <path d="M2 17l10 5 10-5" />
+          <path d="M2 12l10 5 10-5" />
+        </svg>
+      </div>
+      <div>
+        <div class="brand-text">Mur<span>Med</span></div>
+        <div class="brand-tagline">Sağlık Sistemi</div>
+      </div>
+    </div>
+    <nav class="navbar-nav">
+      <button class="nav-link" onclick="showPage('page-kadro')">Kadromuz</button>
+      <button class="nav-link" onclick="showPage('page-hakkimizda')">Hakkımızda</button>
+      <button class="nav-link" onclick="showPage('page-iletisim')">İletişim</button>
+    </nav>
+    <div class="navbar-actions">
+      <div class="user-pill">
+        <div class="user-avatar" id="auth-avatar">AY</div>
+        <div>
+          <div class="user-pill-name" id="auth-name">Kullanıcı</div>
+          <div class="user-pill-role" id="auth-role">Hasta</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Çıkış Yap</button>
+    </div>
+  </nav>
+
+  <div class="page active" id="page-landing">
+    <div class="hero">
+      <div class="hero-left">
+        <div class="hero-eyebrow"><span class="hero-eyebrow-dot"></span>Türkiye'nin Güvenilir Sağlık Merkezi</div>
+        <h1 class="hero-title">Sağlığınız İçin<br><em>Doğru Adres</em></h1>
+        <p class="hero-desc">MurMed olarak, 15 yılı aşkın deneyimimiz ve 34+ uzman hekimimizle sizin ve ailenizin
+          sağlığını güvence altına alıyoruz.</p>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-num" id="counter-patients">0</div>
+            <div class="hero-stat-label">Tedavi Edilen Hasta</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num" id="counter-doctors">0</div>
+            <div class="hero-stat-label">Uzman Doktor</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num" id="counter-satisfaction">0</div>
+            <div class="hero-stat-label">Memnuniyet</div>
+          </div>
+        </div>
+        <div class="hero-badges">
+          <div class="hero-badge"><span>🛡️</span> ISO 9001:2015</div>
+          <div class="hero-badge"><span>🏆</span> JCI Akreditasyonu</div>
+          <div class="hero-badge"><span>⚡</span> 7/24 Acil Servis</div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="login-panel">
+          <div class="login-header">
+            <div class="login-header-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <h2>Sisteme Giriş</h2>
+            <p>Hasta veya personel olarak devam edin</p>
+          </div>
+          <div class="login-tabs">
+            <button class="login-tab active" id="tab-hasta" onclick="loginTabSwitch('hasta')">👤 Hasta</button>
+            <button class="login-tab" id="tab-personel" onclick="loginTabSwitch('personel')">🏥 Personel</button>
+          </div>
+
+          <div class="login-form active" id="form-hasta">
+            <div class="form-field">
+              <label>TC Kimlik No</label>
+              <input class="form-input" id="hasta-tc" type="text" placeholder="12345678901" maxlength="11">
+            </div>
+            <div class="form-field">
+              <label>Şifre</label>
+              <div style="position:relative;">
+                <input class="form-input" id="hasta-sifre" type="password" placeholder="••••••••">
+                <button onclick="togglePassword('hasta-sifre',this)"
+                  style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="form-error" id="hasta-error">TC No veya şifre hatalı. <br><small>Demo: TC=12345678901 /
+                Şifre=hasta123</small></div>
+            <button class="btn btn-primary" onclick="loginHasta()" style="width:100%;padding:14px;">Giriş Yap</button>
+            <div style="text-align:center;margin:16px 0;font-size:12px;color:var(--gray-400);">— veya —</div>
+            <button class="btn-edevlet" onclick="loginHastaEdevlet()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              e-Devlet ile Giriş
+            </button>
+          </div>
+          <div class="login-form" id="form-personel">
+            <div class="form-field">
+              <label>Sicil No</label>
+              <input class="form-input" id="personel-sicil" type="text" placeholder="P001">
+            </div>
+            <div class="form-field">
+              <label>Şifre</label>
+              <div style="position:relative;">
+                <input class="form-input" id="personel-sifre" type="password" placeholder="••••••••">
+                <button onclick="togglePassword('personel-sifre',this)"
+                  style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="form-error" id="personel-error">Sicil No veya şifre hatalı. <br><small>Demo: Sicil=P001 /
+                Şifre=personel123</small></div>
+            <button class="btn btn-primary" onclick="loginPersonel()" style="width:100%;padding:14px;">Personel
+              Girişi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="container">
+        <div style="text-align:center;" class="reveal">
+          <div class="section-label" style="justify-content:center;">Hizmetlerimiz</div>
+          <h2 class="section-title">Uzman Polikliniklerimiz</h2>
+          <p class="section-desc" style="margin:0 auto 56px;">Deneyimli doktor kadromuz ve modern tıbbi ekipmanlarımızla
+            kapsamlı sağlık hizmetleri sunuyoruz.</p>
+        </div>
+        <div class="services-grid">
+          <div class="service-card reveal" onclick="openServiceModal('dahiliye')" style="cursor:pointer">
+            <div class="service-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+              </svg></div>
+            <div class="service-title">Dahiliye & İç Hastalıkları</div>
+            <p class="service-desc">Kronik hastalık yönetimi, genel sağlık muayenesi ve koruyucu hekimlik hizmetleri.
+            </p>
+            <div class="service-link">Detaylı bilgi <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg></div>
+          </div>
+          <div class="service-card reveal" onclick="openServiceModal('kardiyoloji')"
+            style="cursor:pointer;transition-delay:0.05s">
+            <div class="service-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                stroke-width="2">
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg></div>
+            <div class="service-title">Kardiyoloji</div>
+            <p class="service-desc">Kalp ve damar hastalıklarında teşhis, tedavi ve takip hizmetleri. EKG,
+              Ekokardiografi.</p>
+            <div class="service-link">Detaylı bilgi <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg></div>
+          </div>
+          <div class="service-card reveal" onclick="openServiceModal('noroloji')"
+            style="cursor:pointer;transition-delay:0.1s">
+            <div class="service-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg></div>
+            <div class="service-title">Nöroloji</div>
+            <p class="service-desc">Baş ağrısı, epilepsi, Parkinson ve diğer nörolojik hastalıklarda uzman tanı ve
+              tedavi.</p>
+            <div class="service-link">Detaylı bilgi <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg></div>
+          </div>
+          <div class="service-card reveal" onclick="openServiceModal('pediatri')"
+            style="cursor:pointer;transition-delay:0.15s">
+            <div class="service-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+              </svg></div>
+            <div class="service-title">Pediatri</div>
+            <p class="service-desc">0–18 yaş arası çocuk sağlığı, aşılama, gelişim takibi ve çocuk hastalıkları
+              tedavisi.</p>
+            <div class="service-link">Detaylı bilgi <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg></div>
+          </div>
+          <div class="service-card reveal" onclick="openServiceModal('ortopedi')"
+            style="cursor:pointer;transition-delay:0.2s">
+            <div class="service-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg></div>
+            <div class="service-title">Ortopedi & Travmatoloji</div>
+            <p class="service-desc">Kemik, eklem, kas ve bağ hastalıklarında cerrahi ve konservatif tedavi seçenekleri.
+            </p>
+            <div class="service-link">Detaylı bilgi <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg></div>
+          </div>
+          <div class="service-card reveal" onclick="openServiceModal('goz')"
+            style="cursor:pointer;transition-delay:0.25s">
+            <div class="service-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg></div>
+            <div class="service-title">Göz Hastalıkları</div>
+            <p class="service-desc">Katarakt, glokom, retina bozuklukları ve refraksiyon kusurlarında modern tanı ve
+              tedavi.</p>
+            <div class="service-link">Detaylı bilgi <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6" />
+              </svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-banner">
+      <div class="container">
+        <div class="stats-banner-grid">
+          <div class="stat-b reveal">
+            <div class="stat-b-num">48.500+</div>
+            <div class="stat-b-label">Tedavi Edilen Hasta</div>
+          </div>
+          <div class="stat-b reveal" style="transition-delay:0.1s">
+            <div class="stat-b-num">34</div>
+            <div class="stat-b-label">Uzman Doktor</div>
+          </div>
+          <div class="stat-b reveal" style="transition-delay:0.2s">
+            <div class="stat-b-num">12</div>
+            <div class="stat-b-label">Poliklinik</div>
+          </div>
+          <div class="stat-b reveal" style="transition-delay:0.3s">
+            <div class="stat-b-num">98%</div>
+            <div class="stat-b-label">Hasta Memnuniyeti</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section section-alt">
+      <div class="container">
+        <div class="why-grid">
+          <div class="why-visual reveal-left">
+            <div class="why-visual-main">
+              <div class="why-big-num">15+</div>
+              <div class="why-big-label">Yıllık Sağlık Deneyimi</div>
+              <div style="margin-top:24px;display:flex;gap:16px;flex-wrap:wrap;">
+                <div class="chip chip-gold">ISO 9001:2015</div>
+                <div class="chip" style="background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.8);">JCI
+                  Akreditasyonu</div>
+              </div>
+            </div>
+            <div class="why-card-float top">
+              <div class="why-card-float-icon" style="background:var(--success-pale)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <div>
+                <div class="why-card-float-num">%98</div>
+                <div class="why-card-float-label">Başarı Oranı</div>
+              </div>
+            </div>
+            <div class="why-card-float bot">
+              <div class="why-card-float-icon" style="background:var(--blue-pale)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1976D2" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </div>
+              <div>
+                <div class="why-card-float-num">7/24</div>
+                <div class="why-card-float-label">Acil Hizmet</div>
+              </div>
+            </div>
+          </div>
+          <div class="reveal-right">
+            <div class="section-label">Neden MurMed?</div>
+            <h2 class="section-title">Fark Yaratan<br>Sağlık Anlayışı</h2>
+            <p class="section-desc">Yılların deneyimi ve modern tıbbın olanaklarını birleştirerek hastalarımıza en iyi
+              hizmeti sunuyoruz.</p>
+            <div class="why-list">
+              <div class="why-item">
+                <div class="why-item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                    stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg></div>
+                <div>
+                  <div class="why-item-title">Güvenilir & Akredite</div>
+                  <div class="why-item-desc">Uluslararası akreditasyon standartlarında hizmet veren, devlet denetimli
+                    kurumsal yapı.</div>
+                </div>
+              </div>
+              <div class="why-item">
+                <div class="why-item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                    stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                  </svg></div>
+                <div>
+                  <div class="why-item-title">Uzman Doktor Kadrosu</div>
+                  <div class="why-item-desc">Alanlarında deneyimli, sürekli eğitimli 34+ uzman hekim ile kapsamlı sağlık
+                    hizmeti.</div>
+                </div>
+              </div>
+              <div class="why-item">
+                <div class="why-item-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1976D2"
+                    stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg></div>
+                <div>
+                  <div class="why-item-title">Hızlı Randevu Sistemi</div>
+                  <div class="why-item-desc">Online platformumuz üzerinden 7/24 randevu alabilir, bekleme sürenizi
+                    minimize edebilirsiniz.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="container">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px;" class="reveal">
+          <div>
+            <div class="section-label">Sağlık Rehberi</div>
+            <h2 class="section-title">Bilgilendirici Sağlık İçerikleri</h2>
+          </div>
+          <button class="btn btn-secondary" onclick="showPage('page-rehber')">Tümünü Gör</button>
+        </div>
+        <div class="guide-grid">
+          <div class="guide-card reveal" onclick="openArticle('kalp')" style="transition-delay:0.1s">
+            <div class="guide-card-img" style="background:linear-gradient(135deg,#E3F2FD,#BBDEFB)">❤️</div>
+            <div class="guide-card-body">
+              <div class="guide-tag">Kardiyoloji</div>
+              <div class="guide-title">Kalp Sağlığını Koruma Rehberi</div>
+              <div class="guide-desc">Kalp hastalıklarından korunmak için bilmeniz gereken temel önlemler.</div>
+            </div>
+          </div>
+          <div class="guide-card reveal" onclick="openArticle('beyin')" style="transition-delay:0.15s">
+            <div class="guide-card-img" style="background:linear-gradient(135deg,#F3E5F5,#E1BEE7)">🧠</div>
+            <div class="guide-card-body">
+              <div class="guide-tag">Nöroloji</div>
+              <div class="guide-title">Baş Ağrısı Türleri ve Tedavisi</div>
+              <div class="guide-desc">Migren ve gerilim tipi baş ağrılarını tanıma ve tedavi etmenin yolları.</div>
+            </div>
+          </div>
+          <div class="guide-card reveal" onclick="openArticle('diyabet')" style="transition-delay:0.2s">
+            <div class="guide-card-img" style="background:linear-gradient(135deg,#E8F5E9,#C8E6C9)">🩺</div>
+            <div class="guide-card-body">
+              <div class="guide-tag">Dahiliye</div>
+              <div class="guide-title">Diyabet Yönetiminde 10 Altın Kural</div>
+              <div class="guide-desc">Kan şekerini dengelemenin en etkili yolları ve yaşam tarzı değişiklikleri.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-section">
+      <div class="container" style="position:relative;">
+        <h2 class="cta-title">Sağlığınızı Bekletmeyin</h2>
+        <p class="cta-desc">Uzman doktorlarımızla online randevu alın, muayene sürecinizi hızlandırın.</p>
+        <div class="cta-actions">
+          <button class="btn-cta-white"
+            onclick="loginTabSwitch('hasta');document.querySelector('.hero-right').scrollIntoView({behavior:'smooth'})">Randevu
+            Al</button>
+          <button class="btn-cta-outline" onclick="showPage('page-iletisim')">Bize Ulaşın</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand-text">Mur<span>Med</span></div>
+            <div class="footer-desc">Merkezi sağlık yönetim sistemi ile hasta ve personel süreçlerini
+              dijitalleştiriyoruz.</div>
+          </div>
+          <div>
+            <div class="footer-col-title">Hizmetler</div>
+            <a class="footer-link" onclick="showPage('page-services')">Poliklinikler</a>
+            <a class="footer-link" onclick="loginTabSwitch('hasta')">Online Randevu</a>
+            <a class="footer-link" onclick="showPage('page-acil')">Acil Servis</a>
+            <a class="footer-link" onclick="showPage('page-rehber')">Sağlık Rehberi</a>
+          </div>
+          <div>
+            <div class="footer-col-title">Kurumsal</div>
+            <a class="footer-link" onclick="showPage('page-hakkimizda')">Hakkımızda</a>
+            <a class="footer-link" onclick="showPage('page-kadro')">Kadromuz</a>
+            <a class="footer-link" onclick="showPage('page-iletisim')">İletişim</a>
+          </div>
+          <div>
+            <div class="footer-col-title">İletişim</div>
+            <div class="footer-link">📍 Kızılay Mah. Atatürk Blv. No:42 Ankara</div>
+            <div class="footer-link">📞 0312 XXX XX XX</div>
+            <div class="footer-link">📧 info@murmed.com.tr</div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <div class="footer-bottom-text">© 2025 MurMed. Tüm hakları saklıdır.</div>
+          <div class="footer-compliance">
+            <span class="compliance-badge">KVKK Uyumlu</span>
+            <span class="compliance-badge">ISO 9001</span>
+            <span class="compliance-badge">JCI</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <div class="page" id="page-services">
+    <div class="public-page-wrap">
+      <div
+        style="background:linear-gradient(150deg,var(--navy),#1A4C7C);padding:80px 0;position:relative;overflow:hidden;">
+        <div
+          style="position:absolute;bottom:-1px;left:0;right:0;height:80px;background:var(--gray-50);clip-path:ellipse(55% 100% at 50% 100%);">
+        </div>
+        <div class="container" style="position:relative;text-align:center;">
+          <div class="section-label" style="justify-content:center;">Hizmetlerimiz</div>
+          <h1 class="section-title white" style="font-size:52px;">Uzman Polikliniklerimiz</h1>
+          <p class="section-desc white" style="margin:0 auto;">Her branşta uzman doktorlarımız ve modern tıbbi
+            ekipmanlarımızla hizmetinizdeyiz.</p>
+        </div>
+      </div>
+      <div class="container" style="padding-top:72px;padding-bottom:96px;">
+        <div class="services-grid" id="services-full-grid">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-acil">
+    <div class="public-page-wrap">
+      <div style="background:linear-gradient(150deg,#7F1D1D,#DC2626);padding:80px 0;position:relative;overflow:hidden;">
+        <div
+          style="position:absolute;bottom:-1px;left:0;right:0;height:80px;background:var(--gray-50);clip-path:ellipse(55% 100% at 50% 100%);">
+        </div>
+        <div class="container" style="position:relative;text-align:center;">
+          <div class="section-label" style="justify-content:center;color:rgba(255,255,255,0.8);">ACİL SERVİS</div>
+          <h1 class="section-title white" style="font-size:52px;">7/24 Acil Servis</h1>
+          <p class="section-desc white" style="margin:0 auto;">Acil durumlarınızda yanınızdayız. Hemen arayın veya
+            başvurun.</p>
+        </div>
+      </div>
+      <div class="container" style="padding-top:72px;padding-bottom:96px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-bottom:64px;">
+          <div class="reveal-left">
+            <div
+              style="background:var(--danger-pale);border:2px solid var(--danger);border-radius:var(--radius-xl);padding:40px;text-align:center;margin-bottom:24px;">
+              <div style="font-size:64px;margin-bottom:16px;">🚨</div>
+              <div style="font-family:var(--font-display);font-size:28px;color:var(--danger);margin-bottom:8px;">Acil
+                Hat</div>
+              <a href="tel:0312XXXXXXX"
+                style="font-family:var(--font-display);font-size:40px;color:var(--danger);text-decoration:none;font-weight:700;">0312
+                XXX XX XX</a>
+              <div style="font-size:14px;color:var(--gray-500);margin-top:12px;">7 gün 24 saat açık</div>
+            </div>
+            <div style="background:white;border-radius:var(--radius-lg);padding:28px;border:1px solid var(--gray-200);">
+              <h3 style="font-family:var(--font-display);font-size:20px;margin-bottom:16px;">Acil Başvuru Kriterleri
+              </h3>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:20px;">💔</span><span
+                    style="font-size:14px;color:var(--gray-600);">Göğüs ağrısı, çarpıntı, nefes darlığı</span></div>
+                <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:20px;">🧠</span><span
+                    style="font-size:14px;color:var(--gray-600);">Ani baş ağrısı, bilinç kaybı, felç belirtileri</span>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:20px;">🩸</span><span
+                    style="font-size:14px;color:var(--gray-600);">Kontrol edilemeyen kanama, ağır yaralanma</span></div>
+                <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:20px;">🌡️</span><span
+                    style="font-size:14px;color:var(--gray-600);">Yüksek ateş (39°C üzeri), ciddi alerji</span></div>
+                <div style="display:flex;gap:12px;align-items:center;"><span style="font-size:20px;">😰</span><span
+                    style="font-size:14px;color:var(--gray-600);">Şiddetli karın ağrısı, bulantı-kusma</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="reveal-right">
+            <div
+              style="background:white;border-radius:var(--radius-xl);padding:36px;border:1px solid var(--gray-200);box-shadow:var(--shadow-md);">
+              <h3 style="font-family:var(--font-display);font-size:22px;margin-bottom:24px;">Acil Servis Süreci</h3>
+              <div style="display:flex;flex-direction:column;gap:20px;">
+                <div style="display:flex;gap:16px;">
+                  <div
+                    style="width:36px;height:36px;background:var(--danger);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;flex-shrink:0;">
+                    1</div>
+                  <div>
+                    <div style="font-weight:700;margin-bottom:4px;">Kayıt & Triyaj</div>
+                    <div style="font-size:13px;color:var(--gray-500);">Hasta kabul biriminde triyaj hemşiresi tarafından
+                      öncelik belirlenir.</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:16px;">
+                  <div
+                    style="width:36px;height:36px;background:var(--blue-mid);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;flex-shrink:0;">
+                    2</div>
+                  <div>
+                    <div style="font-weight:700;margin-bottom:4px;">Muayene</div>
+                    <div style="font-size:13px;color:var(--gray-500);">Nöbetçi acil tıp uzmanı tarafından değerlendirme
+                      ve tetkik.</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:16px;">
+                  <div
+                    style="width:36px;height:36px;background:var(--success);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;flex-shrink:0;">
+                    3</div>
+                  <div>
+                    <div style="font-weight:700;margin-bottom:4px;">Tedavi & Taburculuk</div>
+                    <div style="font-size:13px;color:var(--gray-500);">Gerekli tedavi uygulanır, gerekmesi halinde yatış
+                      planlanır.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              style="background:linear-gradient(135deg,var(--navy),var(--blue-mid));border-radius:var(--radius-lg);padding:28px;margin-top:24px;color:white;">
+              <div style="font-size:14px;opacity:0.8;margin-bottom:8px;">Adres</div>
+              <div style="font-weight:700;font-size:16px;">Kızılay Mah. Atatürk Blv. No:42</div>
+              <div style="font-size:14px;opacity:0.8;">Çankaya / Ankara</div>
+              <div style="margin-top:16px;font-size:13px;opacity:0.7;">Acil giriş ayrı kapıdan — 24 saat açık</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-hasta">
+    <div class="dashboard-wrapper">
+      <div class="sidebar">
+        <div class="sidebar-section">Hasta Paneli</div>
+        <button class="sidebar-btn active" id="h-menu-ozet" onclick="hastaTab('ozet')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          Özet
+        </button>
+        <button class="sidebar-btn" id="h-menu-randevu" onclick="hastaTab('randevu')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Randevu Al
+        </button>
+        <button class="sidebar-btn" id="h-menu-randevularim" onclick="hastaTab('randevularim')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          Randevularım
+        </button>
+        <div class="sidebar-spacer"></div>
+        <button class="sidebar-btn" onclick="showPage('page-kadro')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+          </svg>
+          Doktorlar
+        </button>
+      </div>
+
+      <main class="main-area">
+   
+        <div id="h-tab-ozet">
+          <div class="welcome-banner">
+            <div>
+              <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Hoş Geldiniz,</div>
+              <h2 style="font-family:var(--font-display);font-size:32px;color:white;" id="hasta-welcome-name">Hasta</h2>
+              <p style="color:rgba(255,255,255,0.65);margin-top:6px;font-size:14px;">Sağlık takiplerinizi buradan
+                yönetebilirsiniz.</p>
+            </div>
+            <button class="btn-cta-white" onclick="hastaTab('randevu')">+ Randevu Al</button>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background:var(--blue-pale)"><svg width="22" height="22" viewBox="0 0 24 24"
+                  fill="none" stroke="#1976D2" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg></div>
+              <div class="kpi-val" id="kpi-toplam">0</div>
+              <div class="kpi-label">Toplam Randevu</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background:var(--success-pale)"><svg width="22" height="22"
+                  viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg></div>
+              <div class="kpi-val" id="kpi-yaklasan">0</div>
+              <div class="kpi-label">Yaklaşan Randevu</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon" style="background:var(--gold-light)"><svg width="22" height="22" viewBox="0 0 24 24"
+                  fill="none" stroke="#F59E0B" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg></div>
+              <div class="kpi-val">A+</div>
+              <div class="kpi-label">Kan Grubu</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Son Randevular</div>
+              </div>
+              <div id="ozet-randevular">
+                <div style="text-align:center;padding:32px;color:var(--gray-400);">
+                  <div style="font-size:40px;margin-bottom:12px;">📅</div>
+                  <div>Henüz randevu bulunmuyor.</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Branş Dağılımı</div>
+              </div>
+              <div class="chart-bars" id="dept-chart">
+                <div style="color:var(--gray-400);font-size:13px;padding:8px;">Henüz randevu yok</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    
+        <div id="h-tab-randevu" style="display:none">
+          <h2 style="font-family:var(--font-display);font-size:28px;margin-bottom:8px;">Randevu Al</h2>
+          <p style="color:var(--gray-500);margin-bottom:32px;">Branşı seçerek randevu oluşturun.</p>
+          <div id="randevu-accordions"></div>
+        </div>
+
+        
+        <div id="h-tab-randevularim" style="display:none">
+          <h2 style="font-family:var(--font-display);font-size:28px;margin-bottom:8px;">Randevularım</h2>
+          <p style="color:var(--gray-500);margin-bottom:32px;">Tüm randevu geçmişiniz ve yaklaşan randevularınız.</p>
+          <div id="randevu-list-container"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="page" id="page-personel">
+    <div class="dashboard-wrapper">
+      <div class="sidebar">
+        <div class="sidebar-section">Personel Paneli</div>
+        <button class="sidebar-btn active" id="p-menu-ozet" onclick="personelTab('ozet')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          Özet
+        </button>
+        <button class="sidebar-btn" id="p-menu-izin" onclick="personelTab('izin')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          İzin Talebi
+        </button>
+        <button class="sidebar-btn" id="p-menu-ariza" onclick="personelTab('ariza')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          </svg>
+          Arıza Bildirimi
+        </button>
+        <div class="sidebar-spacer"></div>
+      </div>
+
+      <main class="main-area">
+
+        <div id="p-tab-ozet">
+          <div class="welcome-banner">
+            <div>
+              <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:8px;">Hoş Geldiniz,</div>
+              <h2 style="font-family:var(--font-display);font-size:32px;color:white;" id="personel-welcome-name">
+                Personel</h2>
+            </div>
+          </div>
+          <div class="personel-kpi-row">
+            <div class="p-kpi">
+              <div class="p-kpi-label">İzin Talebi</div>
+              <div class="p-kpi-val" id="p-izin-count">0</div>
+            </div>
+            <div class="p-kpi">
+              <div class="p-kpi-label">Arıza Bildirimi</div>
+              <div class="p-kpi-val" id="p-ariza-count">0</div>
+            </div>
+            <div class="p-kpi">
+              <div class="p-kpi-label">Çalışma Gün</div>
+              <div class="p-kpi-val">22</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Son Aktiviteler</div>
+            </div>
+            <div id="personel-activity">
+              <div style="text-align:center;padding:32px;color:var(--gray-400);">Henüz aktivite yok.</div>
+            </div>
+          </div>
+        </div>
+
+       
+        <div id="p-tab-izin" style="display:none">
+          <h2 style="font-family:var(--font-display);font-size:28px;margin-bottom:32px;">İzin Talebi</h2>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">İzin Türü Seçin</div>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;">
+              <button class="izin-type-btn" onclick="selectIzin(this,'Yıllık İzin')">🌴 Yıllık İzin</button>
+              <button class="izin-type-btn" onclick="selectIzin(this,'Mazeret İzni')">📋 Mazeret İzni</button>
+              <button class="izin-type-btn" onclick="selectIzin(this,'Sağlık İzni')">🏥 Sağlık İzni</button>
+              <button class="izin-type-btn" onclick="selectIzin(this,'Ücretsiz İzin')">📄 Ücretsiz İzin</button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+              <div><label
+                  style="display:block;font-size:12px;font-weight:700;color:var(--gray-600);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">Başlangıç</label>
+                <input type="date" class="form-input" id="izin-baslangic">
+              </div>
+              <div><label
+                  style="display:block;font-size:12px;font-weight:700;color:var(--gray-600);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">Bitiş</label>
+                <input type="date" class="form-input" id="izin-bitis">
+              </div>
+            </div>
+            <div style="margin-bottom:16px;"><label
+                style="display:block;font-size:12px;font-weight:700;color:var(--gray-600);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">Açıklama</label>
+              <textarea class="form-input" id="izin-aciklama" rows="3"
+                placeholder="İsteğe bağlı açıklama..."></textarea>
+            </div>
+            <div style="display:flex;gap:12px;">
+              <button class="btn btn-primary" onclick="submitIzin()">Talep Gönder</button>
+              <button class="btn btn-secondary" onclick="resetIzin()">Temizle</button>
+            </div>
+          </div>
+        </div>
+
+     
+        <div id="p-tab-ariza" style="display:none">
+          <h2 style="font-family:var(--font-display);font-size:28px;margin-bottom:32px;">Arıza Bildirimi</h2>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Arıza Türü Seçin</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+              <div class="fault-opt" onclick="toggleFault(this)">
+                <div class="fault-opt-icon">💡</div>
+                <div class="fault-opt-label">Elektrik</div>
+              </div>
+              <div class="fault-opt" onclick="toggleFault(this)">
+                <div class="fault-opt-icon">💧</div>
+                <div class="fault-opt-label">Su/Tesisat</div>
+              </div>
+              <div class="fault-opt" onclick="toggleFault(this)">
+                <div class="fault-opt-icon">❄️</div>
+                <div class="fault-opt-label">Klima/HVAC</div>
+              </div>
+              <div class="fault-opt" onclick="toggleFault(this)">
+                <div class="fault-opt-icon">🖥️</div>
+                <div class="fault-opt-label">Bilgisayar</div>
+              </div>
+              <div class="fault-opt" onclick="toggleFault(this)">
+                <div class="fault-opt-icon">🏥</div>
+                <div class="fault-opt-label">Tıbbi Cihaz</div>
+              </div>
+              <div class="fault-opt" onclick="toggleFault(this)">
+                <div class="fault-opt-icon">🔒</div>
+                <div class="fault-opt-label">Güvenlik</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+              <div><label
+                  style="display:block;font-size:12px;font-weight:700;color:var(--gray-600);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">Birim/Konum</label>
+                <input type="text" class="form-input" id="ariza-birim" placeholder="Ör: 3. Kat, Oda 301">
+              </div>
+              <div><label
+                  style="display:block;font-size:12px;font-weight:700;color:var(--gray-600);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">Öncelik</label>
+                <select class="form-input" id="ariza-oncelik">
+                  <option value="dusuk">Düşük</option>
+                  <option value="orta" selected>Orta</option>
+                  <option value="yuksek">Yüksek</option>
+                  <option value="acil">Acil</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-bottom:16px;"><label
+                style="display:block;font-size:12px;font-weight:700;color:var(--gray-600);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:8px;">Açıklama</label>
+              <textarea class="form-input" id="ariza-aciklama" rows="3"
+                placeholder="Arıza detaylarını açıklayın..."></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="submitAriza()">Arıza Bildir</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="page" id="page-kadro">
+    <div class="public-page-wrap">
+      <div
+        style="background:linear-gradient(150deg,var(--navy),#1A4C7C);padding:80px 0;position:relative;overflow:hidden;">
+        <div
+          style="position:absolute;bottom:-1px;left:0;right:0;height:80px;background:var(--gray-50);clip-path:ellipse(55% 100% at 50% 100%);">
+        </div>
+        <div class="container" style="position:relative;text-align:center;">
+          <div class="section-label" style="justify-content:center;">Uzman Kadromuz</div>
+          <h1 class="section-title white" style="font-size:52px;">Doktor Kadromuz</h1>
+          <p class="section-desc white" style="margin:0 auto;">Alanında uzman doktorlarımızla sağlığınızı güvende
+            tutuyoruz.</p>
+        </div>
+      </div>
+      <div class="container" style="padding-top:56px;padding-bottom:96px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;" id="dept-filter-btns">
+          <button class="dept-btn active" onclick="filterDept(this,'all')">Tümü</button>
+          <button class="dept-btn" onclick="filterDept(this,'Kardiyoloji')">❤️ Kardiyoloji</button>
+          <button class="dept-btn" onclick="filterDept(this,'Dahiliye')">🩺 Dahiliye</button>
+          <button class="dept-btn" onclick="filterDept(this,'Nöroloji')">🧠 Nöroloji</button>
+          <button class="dept-btn" onclick="filterDept(this,'Ortopedi')">🦴 Ortopedi</button>
+          <button class="dept-btn" onclick="filterDept(this,'Pediatri')">👶 Pediatri</button>
+          <button class="dept-btn" onclick="filterDept(this,'Göz Hastalıkları')">👁️ Göz</button>
+        </div>
+        <div class="doctors-grid" id="doctors-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-hakkimizda">
+    <div class="public-page-wrap">
+      <div
+        style="background:linear-gradient(150deg,var(--navy),#1A4C7C);padding:80px 0;position:relative;overflow:hidden;">
+        <div
+          style="position:absolute;bottom:-1px;left:0;right:0;height:80px;background:white;clip-path:ellipse(55% 100% at 50% 100%);">
+        </div>
+        <div class="container" style="position:relative;text-align:center;">
+          <div class="section-label" style="justify-content:center;">Biz Kimiz</div>
+          <h1 class="section-title white" style="font-size:52px;">MurMed Hakkında</h1>
+        </div>
+      </div>
+      <div class="container" style="padding-top:72px;padding-bottom:96px;">
+        <div class="about-intro-grid reveal">
+          <div>
+            <div class="section-label">Vizyonumuz</div>
+            <h2 class="section-title" style="font-size:36px;">Sağlıkta Dijital Dönüşüm Öncüsü</h2>
+            <p style="font-size:15px;color:var(--gray-500);line-height:1.8;margin-bottom:20px;">2009 yılında kurulan
+              MurMed, hasta odaklı yaklaşımı ve teknoloji entegrasyonuyla Türkiye'nin önde gelen sağlık merkezlerinden
+              biri haline gelmiştir.</p>
+            <p style="font-size:15px;color:var(--gray-500);line-height:1.8;">Modern tıbbın olanaklarını ve dijital
+              altyapıyı birleştirerek hastalarımıza en hızlı, en güvenilir ve en kaliteli sağlık hizmetini sunmayı
+              hedefliyoruz.</p>
+          </div>
+          <div
+            style="background:linear-gradient(135deg,var(--navy),var(--blue-mid));border-radius:var(--radius-xl);padding:44px;color:white;text-align:center;">
+            <div style="font-size:72px;font-family:var(--font-display);margin-bottom:8px;">2009</div>
+            <div style="font-size:16px;opacity:0.8;">Kuruluş Yılı</div>
+            <div style="margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+              <div>
+                <div style="font-family:var(--font-display);font-size:32px;">34+</div>
+                <div style="font-size:12px;opacity:0.7;">Uzman Doktor</div>
+              </div>
+              <div>
+                <div style="font-family:var(--font-display);font-size:32px;">12</div>
+                <div style="font-size:12px;opacity:0.7;">Poliklinik</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="about-numbers-row reveal" style="margin-top:64px;">
+          <div
+            style="text-align:center;padding:32px;background:white;border-radius:var(--radius-lg);border:1px solid var(--gray-100);">
+            <div style="font-family:var(--font-display);font-size:48px;color:var(--blue-mid);">48.500+</div>
+            <div style="font-size:14px;color:var(--gray-500);margin-top:8px;">Tedavi Edilen Hasta</div>
+          </div>
+          <div
+            style="text-align:center;padding:32px;background:white;border-radius:var(--radius-lg);border:1px solid var(--gray-100);">
+            <div style="font-family:var(--font-display);font-size:48px;color:var(--success);">%98</div>
+            <div style="font-size:14px;color:var(--gray-500);margin-top:8px;">Hasta Memnuniyeti</div>
+          </div>
+          <div
+            style="text-align:center;padding:32px;background:white;border-radius:var(--radius-lg);border:1px solid var(--gray-100);">
+            <div style="font-family:var(--font-display);font-size:48px;color:var(--gold);">15+</div>
+            <div style="font-size:14px;color:var(--gray-500);margin-top:8px;">Yıllık Deneyim</div>
+          </div>
+          <div
+            style="text-align:center;padding:32px;background:white;border-radius:var(--radius-lg);border:1px solid var(--gray-100);">
+            <div style="font-family:var(--font-display);font-size:48px;color:var(--navy);">7/24</div>
+            <div style="font-size:14px;color:var(--gray-500);margin-top:8px;">Acil Hizmet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-rehber">
+    <div class="public-page-wrap">
+      <div class="rehber-hero">
+        <div class="container" style="position:relative;text-align:center;">
+          <div class="section-label" style="justify-content:center;">Sağlık Rehberi</div>
+          <h1 class="section-title white" style="font-size:52px;">Sağlıklı Yaşam İçin Bilgi Merkezi</h1>
+          <p class="section-desc white" style="margin:0 auto;">Uzman doktorlarımız tarafından hazırlanan kapsamlı sağlık
+            içerikleri.</p>
+        </div>
+      </div>
+      <div class="container" style="padding-top:72px;padding-bottom:96px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:40px;">
+          <button class="dept-btn active" onclick="filterRehber(this,'all')">Tümü</button>
+          <button class="dept-btn" onclick="filterRehber(this,'Kardiyoloji')">❤️ Kardiyoloji</button>
+          <button class="dept-btn" onclick="filterRehber(this,'Nöroloji')">🧠 Nöroloji</button>
+          <button class="dept-btn" onclick="filterRehber(this,'Dahiliye')">🩺 Dahiliye</button>
+          <button class="dept-btn" onclick="filterRehber(this,'Ortopedi')">🦴 Ortopedi</button>
+          <button class="dept-btn" onclick="filterRehber(this,'Genel')">💚 Genel Sağlık</button>
+        </div>
+        <div class="rehber-grid" id="rehber-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-iletisim">
+    <div class="public-page-wrap">
+      <div
+        style="background:linear-gradient(150deg,var(--navy),#1A4C7C);padding:80px 0;position:relative;overflow:hidden;">
+        <div
+          style="position:absolute;bottom:-1px;left:0;right:0;height:80px;background:var(--gray-50);clip-path:ellipse(55% 100% at 50% 100%);">
+        </div>
+        <div class="container" style="position:relative;text-align:center;">
+          <div class="section-label" style="justify-content:center;">İletişim</div>
+          <h1 class="section-title white" style="font-size:52px;">Bize Ulaşın</h1>
+          <p class="section-desc white" style="margin:0 auto;">Sorularınız için 7/24 hizmetinizdeyiz.</p>
+        </div>
+      </div>
+      <div class="container" style="padding-top:72px;padding-bottom:96px;">
+        <div class="contact-grid">
+          <div class="reveal-left">
+            <div class="section-label">İletişim Bilgileri</div>
+            <h2 class="section-title" style="font-size:34px;margin-bottom:32px;">Size En Hızlı Nasıl Ulaşabiliriz?</h2>
+            <div class="contact-info-item">
+              <div class="contact-info-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                  stroke="#1976D2" stroke-width="2">
+                  <path
+                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 14a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 3.18H6.6a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 10a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 17.18z" />
+                </svg></div>
+              <div>
+                <div class="contact-info-label">Telefon</div>
+                <div class="contact-info-val">0312 XXX XX XX</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-info-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                  stroke="#1976D2" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg></div>
+              <div>
+                <div class="contact-info-label">E-posta</div>
+                <div class="contact-info-val">info@murmed.com.tr</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-info-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                  stroke="#1976D2" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg></div>
+              <div>
+                <div class="contact-info-label">Adres</div>
+                <div class="contact-info-val">Kızılay Mah. Atatürk Blv. No:42, Çankaya / Ankara</div>
+              </div>
+            </div>
+            <div class="contact-info-item">
+              <div class="contact-info-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                  stroke="#1976D2" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg></div>
+              <div>
+                <div class="contact-info-label">Çalışma Saatleri</div>
+                <div class="contact-info-val">Pzt-Cmt: 08:00–20:00 / Acil: 7/24</div>
+              </div>
+            </div>
+          </div>
+          <div class="reveal-right">
+            <div class="contact-form-card">
+              <h3 style="font-family:var(--font-display);font-size:24px;margin-bottom:28px;">Mesaj Gönderin</h3>
+              <div class="form-group-c">
+                <label>Ad Soyad</label>
+                <input class="form-control" id="c-name" placeholder="Adınız ve soyadınız">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group-c"><label>E-posta</label><input class="form-control" id="c-email" type="email"
+                    placeholder="ornek@email.com"></div>
+                <div class="form-group-c"><label>Telefon</label><input class="form-control" id="c-phone"
+                    placeholder="05XX XXX XX XX"></div>
+              </div>
+              <div class="form-group-c">
+                <label>Konu</label>
+                <select class="form-control" id="c-subject">
+                  <option>Randevu Talebi</option>
+                  <option>Genel Bilgi</option>
+                  <option>Şikayet & Öneri</option>
+                  <option>Diğer</option>
+                </select>
+              </div>
+              <div class="form-group-c">
+                <label>Mesajınız</label>
+                <textarea class="form-control" id="c-message" rows="4" placeholder="Mesajınızı yazın..."></textarea>
+              </div>
+              <button class="btn btn-primary" onclick="submitContact()" style="width:100%;padding:15px;">Mesajı
+                Gönder</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
