@@ -35,7 +35,7 @@ MurMed, hastane ve poliklinik süreçlerini dijitalleştirmek amacıyla gelişti
 
 ## Kurulum
 
-**1. Projeyi indirin. **
+**1. Projeyi indirin.**
 
 
 **2. Dosya yapısını kontrol edin:**
